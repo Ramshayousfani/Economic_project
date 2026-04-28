@@ -8,10 +8,17 @@
 # (https://www.pbs.gov.pk/national-accounts-2/)
 # gdp data from world bank (https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?end=2024&locations=PK&start=1961)
 
-print("===== ECONOMIC INDICATOR SYSTEM FOR PAKISTAN =====")
 
+import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
+
+# ------------------ TITLE ------------------
+st.title("📊 Economic Indicator System - Pakistan")
+
+st.write("Analyze GDP, Unemployment, and Poverty trends (2000–2025)")
+
+
 
 
 # ------------------ STEP 1: COMPLETE DATASET (2000–2025) ------------------
@@ -55,103 +62,108 @@ for year in range(2000, 2026):
         "Poverty": poverty_data[year]
     }
 
-
-# ------------------ STEP 3: DASHBOARD GRAPH ------------------
-
 years = sorted(economic_data.keys())
 indicators = ["GDP", "Unemployment", "Poverty"]
 
-plt.figure(figsize=(12,6))
+
+
+# ------------------ STEP 3: DASHBOARD GRAPH ------------------
+
+st.subheader("📈 Economic Trends (2000–2025)")
+
+fig, ax = plt.subplots(figsize=(12,6))
 
 for indicator in indicators:
     values = [economic_data[y][indicator] for y in years]
-    plt.plot(years, values, marker='o', label=indicator)
+    ax.plot(years, values, marker='o', label=indicator)
 
-plt.title("Pakistan Economic Trends (2000–2025)")
-plt.xlabel("Year")
-plt.ylabel("Value (%)")
-plt.legend()
-plt.grid()
-plt.show()
+ax.set_title("Pakistan Economic Trends")
+ax.set_xlabel("Year")
+ax.set_ylabel("Percentage (%)")
+ax.legend()
+ax.grid()
+
+st.pyplot(fig)
 
 
 # ------------------ STEP 4: COMPARISON ------------------
 
-year = int(input("Enter a year (2000–2024) to compare with 2025: "))
+st.subheader("📊 Compare Year with 2025")
 
-if year not in economic_data or year == 2025:
-    print("Invalid year")
-else:
-    old = economic_data[year]
-    new = economic_data[2025]
+year = st.number_input("Select a year:", 2000, 2024)
 
-    print("\n----- Percentage Change -----")
-    for ind in indicators:
-        change = ((new[ind] - old[ind]) / old[ind]) * 100
-        print(f"{ind}: {change:.2f}% change")
+old = economic_data[year]
+new = economic_data[2025]
 
-    print("\n--- Interpretation ---")
-    for ind in indicators:
-        if new[ind] > old[ind]:
-            print(f"{ind}: Increased")
-        elif new[ind] < old[ind]:
-            print(f"{ind}: Decreased")
-        else:
-            print(f"{ind}: No change")
+st.write("### Percentage Change")
 
+for ind in indicators:
+    change = ((new[ind] - old[ind]) / old[ind]) * 100
+    st.write(f"{ind}: {change:.2f}%")
+
+st.write("### Interpretation")
+
+for ind in indicators:
+    if new[ind] > old[ind]:
+        st.write(f"{ind}: Increased")
+    elif new[ind] < old[ind]:
+        st.write(f"{ind}: Decreased")
+    else:
+        st.write(f"{ind}: No change")
+        
+        
     # Comparison Graph
-    plt.figure(figsize=(8,5))
+    fig2, ax2 = plt.subplots()
 
-    x = np.arange(len(indicators))
-    old_values = [old[ind] for ind in indicators]
-    new_values = [new[ind] for ind in indicators]
+x = np.arange(len(indicators))
+old_values = [old[ind] for ind in indicators]
+new_values = [new[ind] for ind in indicators]
 
-    plt.bar(x - 0.2, old_values, width=0.4, label=str(year))
-    plt.bar(x + 0.2, new_values, width=0.4, label="2025")
+ax2.bar(x - 0.2, old_values, width=0.4, label=str(year))
+ax2.bar(x + 0.2, new_values, width=0.4, label="2025")
 
-    plt.xticks(x, indicators)
-    plt.ylabel("Values")
-    plt.title(f"Economic Comparison: {year} vs 2025")
-    plt.legend()
-    plt.grid(axis='y')
-    plt.show()
+ax2.set_xticks(x)
+ax2.set_xticklabels(indicators)
+ax2.set_title(f"Comparison: {year} vs 2025")
+ax2.legend()
+ax2.grid()
+
+st.pyplot(fig2)
 
 
 # ------------------ STEP 5: PREDICTION (2026) ------------------
 
-print("\n----- PREDICTED VALUES FOR 2026 -----")
+st.subheader("🔮 Prediction for 2026")
 
-x = np.array(years)
 predicted = {}
 
 for ind in indicators:
+    x = np.array(years)
     y = np.array([economic_data[yr][ind] for yr in years])
 
-    coeffs = np.polyfit(x, y, 2)   # Polynomial Regression
+    coeffs = np.polyfit(x, y, 2)
     model = np.poly1d(coeffs)
 
     pred_val = model(2026)
     predicted[ind] = pred_val
 
-    print(f"{ind} Prediction 2026: {pred_val:.2f}")
+    st.write(f"{ind} Prediction 2026: {pred_val:.2f}")
 
 
 # ------------------ STEP 6: PREDICTION GRAPHS ------------------
 
 for ind in indicators:
-    plt.figure()
+    fig3, ax3 = plt.subplots()
 
     values = [economic_data[y][ind] for y in years]
-    plt.plot(years, values, label="Actual Data")
+    ax3.plot(years, values, label="Actual Data")
 
-    plt.scatter(2026, predicted[ind], label="Prediction 2026")
+    ax3.scatter(2026, predicted[ind], label="Prediction 2026")
 
-    plt.title(f"{ind} Prediction (2026)")
-    plt.xlabel("Year")
-    plt.ylabel(ind)
-    plt.legend()
-    plt.grid()
-    plt.show()
+    ax3.set_title(f"{ind} Prediction")
+    ax3.legend()
+    ax3.grid()
 
+    st.pyplot(fig3)
 
-print("===== PROJECT COMPLETED SUCCESSFULLY =====")
+st.success("✅ Project Completed Successfully!")
